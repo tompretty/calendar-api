@@ -6,11 +6,12 @@ import express, {
 } from "express";
 import bodyParser from "body-parser";
 import { z, ZodSchema } from "zod";
+import { PrismaClient } from "@prisma/client";
 
 const app = express();
 const port = 3000;
 
-const isoDateSchema = z.string().datetime().pipe(z.coerce.date());
+const isoDateSchema = z.string().datetime();
 
 const apiCalendarEventSchema = z.object({
 	name: z.string(),
@@ -18,20 +19,7 @@ const apiCalendarEventSchema = z.object({
 	endAt: isoDateSchema,
 });
 
-type ApiCalendarEvent = z.infer<typeof apiCalendarEventSchema>;
-
-const EVENTS: ApiCalendarEvent[] = [
-	{
-		name: "Driving lesson",
-		startAt: new Date(2024, 0, 1, 9, 0, 0),
-		endAt: new Date(2024, 0, 1, 12, 0, 0),
-	},
-	{
-		name: "Pick up shopping",
-		startAt: new Date(2024, 0, 1, 17, 0, 0),
-		endAt: new Date(2024, 0, 1, 18, 0, 0),
-	},
-];
+const prisma = new PrismaClient();
 
 function validateBody<TBody extends ZodSchema>(
 	schema: TBody,
@@ -56,16 +44,19 @@ app.get("/", (_req, res) => {
 	res.send("Hello World!");
 });
 
-app.get("/events", (_req, res) => {
-	res.json({ events: EVENTS });
+app.get("/events", async (_req, res) => {
+	const events = await prisma.events.findMany();
+	res.json({ events });
 });
 
 app.post(
 	"/events",
 	bodyParser.json(),
 	validateBody(apiCalendarEventSchema),
-	(req, res) => {
-		EVENTS.push(req.body);
+	async (req, res) => {
+		await prisma.events.create({
+			data: req.body,
+		});
 
 		res.sendStatus(203);
 	},

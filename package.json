@@ -33,6 +33,7 @@
 		"*": "prettier --ignore-unknown --write"
 	},
 	"dependencies": {
+		"@prisma/client": "5.17.0",
 		"@types/body-parser": "^1.19.5",
 		"body-parser": "^1.20.2",
 		"express": "^4.19.2",
@@ -68,6 +69,7 @@
 		"prettier-plugin-curly": "^0.2.2",
 		"prettier-plugin-packagejson": "^2.5.1",
 		"prettier-plugin-sh": "^0.14.0",
+		"prisma": "^5.17.0",
 		"sentences-per-line": "^0.2.1",
 		"ts-node": "^10.9.2",
 		"tsup": "^8.2.3",
