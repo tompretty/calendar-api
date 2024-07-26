@@ -1,16 +1,13 @@
 {
+	"version": "0.2.0",
 	"configurations": [
 		{
-			"args": ["run", "${relativeFile}"],
-			"autoAttachChildProcesses": true,
-			"console": "integratedTerminal",
-			"name": "Debug Current Test File",
-			"program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+			"type": "node",
 			"request": "launch",
-			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
-			"smartStep": true,
-			"type": "node"
+			"name": "Node: Nodemon",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["start"],
+			"outputCapture": "std"
 		}
-	],
-	"version": "0.2.0"
+	]
 }
