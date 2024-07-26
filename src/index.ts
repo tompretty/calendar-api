@@ -1,15 +1,14 @@
-import express from "express";
+import express, {
+	NextFunction,
+	Request,
+	RequestHandler,
+	Response,
+} from "express";
 import bodyParser from "body-parser";
-import { z } from "zod";
+import { z, ZodSchema } from "zod";
 
 const app = express();
 const port = 3000;
-
-interface CalendarEvent {
-	name: string;
-	startAt: Date;
-	endAt: Date;
-}
 
 const isoDateSchema = z.string().datetime().pipe(z.coerce.date());
 
@@ -19,7 +18,9 @@ const apiCalendarEventSchema = z.object({
 	endAt: isoDateSchema,
 });
 
-const EVENTS: CalendarEvent[] = [
+type ApiCalendarEvent = z.infer<typeof apiCalendarEventSchema>;
+
+const EVENTS: ApiCalendarEvent[] = [
 	{
 		name: "Driving lesson",
 		startAt: new Date(2024, 0, 1, 9, 0, 0),
@@ -32,6 +33,25 @@ const EVENTS: CalendarEvent[] = [
 	},
 ];
 
+function validateBody<TBody extends ZodSchema>(
+	schema: TBody,
+): RequestHandler<Record<string, string>, any, z.infer<TBody>> {
+	function handler(req: Request, res: Response, next: NextFunction) {
+		const result = schema.safeParse(req.body);
+
+		if (!result.success) {
+			res.sendStatus(400);
+			return;
+		}
+
+		req.body = result.data;
+
+		next();
+	}
+
+	return handler;
+}
+
 app.get("/", (_req, res) => {
 	res.send("Hello World!");
 });
@@ -40,19 +60,16 @@ app.get("/events", (_req, res) => {
 	res.json({ events: EVENTS });
 });
 
-app.post("/events", bodyParser.json(), (req, res) => {
-	console.log(req.body);
-	const result = apiCalendarEventSchema.safeParse(req.body);
+app.post(
+	"/events",
+	bodyParser.json(),
+	validateBody(apiCalendarEventSchema),
+	(req, res) => {
+		EVENTS.push(req.body);
 
-	if (!result.success) {
-		res.sendStatus(400);
-		return;
-	}
-
-	EVENTS.push(result.data);
-
-	res.sendStatus(203);
-});
+		res.sendStatus(203);
+	},
+);
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`);
